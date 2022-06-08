@@ -1,6 +1,6 @@
 #ifndef LROCKSDB_HELPERS_H
 #define LROCKSDB_HELPERS_H
-#include "lauxlib.h"
+#include <luajit/lauxlib.h>
 #if !defined LUA_VERSION_NUM || LUA_VERSION_NUM==501
 LUALIB_API void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup);
 #endif

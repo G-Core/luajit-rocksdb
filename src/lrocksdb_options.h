@@ -1,7 +1,7 @@
 #ifndef LROCKSDB_OPTIONS_H
 #define LROCKSDB_OPTIONS_H
 #include <string.h>
-#include "lauxlib.h"
+#include <luajit/lauxlib.h>
 #include "lrocksdb_types.h"
 #include "lrocksdb_helpers.h"
 

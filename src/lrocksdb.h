@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include "lauxlib.h"
+#include <luajit/lauxlib.h>
 
 #include "rocksdb/c.h"
 #include "lrocksdb_helpers.h"
