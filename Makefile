@@ -15,7 +15,7 @@ ifeq ($(UNAME), Darwin)
 	LIB_PATH= /usr/local/lib
 	INC_PATH= /usr/local/include
 	BIN_PATH= /usr/local/bin
-	LUA_LIB= -L$(LIB_PATH) -llua5.1 -lrocksdb 
+	LUA_LIB= -L$(LIB_PATH) -llua5.1 
 	LUA_INC= -I$(INC_PATH) -I$(INC_PATH)/lua-5.1
 	EXTRACFLAGS= -std=c99 -undefined dynamic_lookup -fPIC
 endif
