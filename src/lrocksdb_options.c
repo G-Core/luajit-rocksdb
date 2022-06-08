@@ -60,10 +60,6 @@ void lrocksdb_options_set_from_table(lua_State *L, int index, rocksdb_options_t 
       opt_int = luaL_checkint(L, -2);
       rocksdb_options_set_level0_stop_writes_trigger(opt, opt_int);
     }
-    else if(strcmp(key, "max_mem_compaction_level") == 0) {
-      opt_int = luaL_checkint(L, -2);
-      rocksdb_options_set_max_mem_compaction_level(opt, opt_int);
-    }
     else if(strcmp(key, "target_file_size_multiplier") == 0) {
       opt_int = luaL_checkint(L, -2);
       rocksdb_options_set_target_file_size_multiplier(opt, opt_int);
@@ -92,10 +88,6 @@ void lrocksdb_options_set_from_table(lua_State *L, int index, rocksdb_options_t 
       opt_int = luaL_checkint(L, -2);
       rocksdb_options_set_table_cache_numshardbits(opt, opt_int);
     }
-    else if(strcmp(key, "table_cache_remove_scan_count_limit") == 0) {
-      opt_int = luaL_checkint(L, -2);
-      rocksdb_options_set_table_cache_remove_scan_count_limit(opt, opt_int);
-    }
     else if(strcmp(key, "use_fsync") == 0) {
       opt_int = luaL_checkint(L, -2);
       rocksdb_options_set_use_fsync(opt, opt_int);
@@ -103,10 +95,6 @@ void lrocksdb_options_set_from_table(lua_State *L, int index, rocksdb_options_t 
     else if(strcmp(key, "access_hint_on_compaction_start") == 0) {
       opt_int = luaL_checkint(L, -2);
       rocksdb_options_set_access_hint_on_compaction_start(opt, opt_int);
-    }
-    else if(strcmp(key, "disable_data_sync") == 0) {
-      opt_int = luaL_checkint(L, -2);
-      rocksdb_options_set_disable_data_sync(opt, opt_int);
     }
     else if(strcmp(key, "disable_auto_compactions") == 0) {
       opt_int = luaL_checkint(L, -2);
@@ -141,14 +129,6 @@ void lrocksdb_options_set_from_table(lua_State *L, int index, rocksdb_options_t 
       opt_bool = lua_toboolean(L, -2);
       rocksdb_options_set_paranoid_checks(opt, opt_bool);
     }
-    else if(strcmp(key, "purge_redundant_kvs_while_flush") == 0) {
-      opt_bool = lua_toboolean(L, -2);
-      rocksdb_options_set_purge_redundant_kvs_while_flush(opt, opt_bool);
-    }
-    else if(strcmp(key, "allow_os_buffer") == 0) {
-      opt_bool = lua_toboolean(L, -2);
-      rocksdb_options_set_allow_os_buffer(opt, opt_bool);
-    }
     else if(strcmp(key, "allow_mmap_reads") == 0) {
       opt_bool = lua_toboolean(L, -2);
       rocksdb_options_set_allow_mmap_reads(opt, opt_bool);
@@ -161,10 +141,6 @@ void lrocksdb_options_set_from_table(lua_State *L, int index, rocksdb_options_t 
       opt_bool = lua_toboolean(L, -2);
       rocksdb_options_set_is_fd_close_on_exec(opt, opt_bool);
     }
-    else if(strcmp(key, "skip_log_error_on_recovery") == 0) {
-      opt_bool = lua_toboolean(L, -2);
-      rocksdb_options_set_skip_log_error_on_recovery(opt, opt_bool);
-    }
     else if(strcmp(key, "advise_random_on_open") == 0) {
       opt_bool = lua_toboolean(L, -2);
       rocksdb_options_set_advise_random_on_open(opt, opt_bool);
@@ -172,10 +148,6 @@ void lrocksdb_options_set_from_table(lua_State *L, int index, rocksdb_options_t 
     else if(strcmp(key, "use_adaptive_mutex") == 0) {
       opt_bool = lua_toboolean(L, -2);
       rocksdb_options_set_use_adaptive_mutex(opt, opt_bool);
-    }
-    else if(strcmp(key, "verify_checksums_in_compaction") == 0) {
-      opt_bool = lua_toboolean(L, -2);
-      rocksdb_options_set_verify_checksums_in_compaction(opt, opt_bool);
     }
     else if(strcmp(key, "inplace_update_support") == 0) {
       opt_bool = lua_toboolean(L, -2);
