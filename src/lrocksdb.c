@@ -1,6 +1,54 @@
 #include "lrocksdb.h"
 
-LUALIB_API int lrocksdb_reg(lua_State *L) {
+#define LROCKSDB_VERSION "lua-rocksdb 0.0.1"
+#define LROCKSDB_COPYRIGHT "Copyright (C) 2016, Zaher Marzuq"
+#define LROCKSDB_DESCRIPTION "RocksDB binding for Lua"
+static int lrocksdb_reg(lua_State *L);
+static int lrocksdb_open(lua_State *L);
+static int lrocksdb_put(lua_State *L);
+static int lrocksdb_get(lua_State *L);
+static int lrocksdb_close(lua_State *L);
+static int lrocksdb_open_for_read_only(lua_State *L);
+static int lrocksdb_delete(lua_State *L);
+static int lrocksdb_write(lua_State *L);
+static int lrocksdb_create_iterator(lua_State *L);
+static int lrocksdb_property_value(lua_State *L);
+static const struct luaL_Reg  lrocksdb_db_reg[] = {
+  { "put", lrocksdb_put },
+  { "get", lrocksdb_get },
+  { "close", lrocksdb_close },
+  { "delete", lrocksdb_delete },
+  { "write", lrocksdb_write },
+  { "iterator", lrocksdb_create_iterator },
+  { "property_value", lrocksdb_property_value },
+  { NULL, NULL }
+};
+
+static const struct luaL_Reg  lrocksdb_regs[] = {
+  { "db", lrocksdb_reg },
+  { "options",  lrocksdb_options_reg },
+  { "writeoptions",  lrocksdb_writeoptions_reg },
+  { "readoptions",  lrocksdb_readoptions_reg },
+  { "backup_engine", lrocksdb_backup_engine_reg },
+  { "writebatch", lrocksdb_writebatch_reg },
+  { "restoreoptions", lrocksdb_restoreoptions_reg },
+  { "iterator", lrocksdb_iter_reg },
+  { NULL, NULL }
+};
+
+static const struct luaL_Reg lrocksdb_funcs[] = {
+  { "open", lrocksdb_open },
+  { "open_for_read_only", lrocksdb_open_for_read_only },
+  { "options", lrocksdb_options_create },
+  { "writeoptions", lrocksdb_writeoptions_create },
+  { "readoptions", lrocksdb_readoptions_create },
+  { "backup_engine", lrocksdb_backup_engine_open },
+  { "writebatch", lrocksdb_writebatch_create },
+  { "restoreoptions", lrocksdb_restoreoptions_create },
+  { NULL, NULL }
+};
+
+static int lrocksdb_reg(lua_State *L) {
   lrocksdb_createmeta(L, "db", lrocksdb_db_reg);
   return 1;
 }
@@ -12,7 +60,7 @@ lrocksdb_t *lrocksdb_get_db(lua_State *L, int index) {
 }
 
 
-LUALIB_API int lrocksdb_open(lua_State *L) {
+static int lrocksdb_open(lua_State *L) {
   lrocksdb_options_t *o = lrocksdb_get_options(L, 1);
   const char *path = luaL_checkstring(L, 2);
   char *err = NULL;
@@ -32,7 +80,7 @@ LUALIB_API int lrocksdb_open(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_open_for_read_only(lua_State *L) {
+static int lrocksdb_open_for_read_only(lua_State *L) {
   lrocksdb_options_t *o = lrocksdb_get_options(L, 1);
   const char *name = luaL_checkstring(L, 2);
   unsigned char error_if_log_file_exist = lua_toboolean(L, 3);
@@ -55,7 +103,7 @@ LUALIB_API int lrocksdb_open_for_read_only(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_put(lua_State *L) {
+static int lrocksdb_put(lua_State *L) {
   lrocksdb_t *d = lrocksdb_get_db(L, 1);
   lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, 2);
   size_t key_len, value_len;
@@ -73,7 +121,7 @@ LUALIB_API int lrocksdb_put(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_get(lua_State *L) {
+static int lrocksdb_get(lua_State *L) {
   lrocksdb_t *d = lrocksdb_get_db(L, 1);
   lrocksdb_assert(L, d->open, "db is closed");
   lrocksdb_readoptions_t *ro = lrocksdb_get_readoptions(L, 2);
@@ -96,7 +144,7 @@ LUALIB_API int lrocksdb_get(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_delete(lua_State *L) {
+static int lrocksdb_delete(lua_State *L) {
   lrocksdb_t *d = lrocksdb_get_db(L, 1);
   lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, 2);
   size_t key_len;
@@ -114,7 +162,7 @@ LUALIB_API int lrocksdb_delete(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_write(lua_State *L) {
+static int lrocksdb_write(lua_State *L) {
   lrocksdb_t *d = lrocksdb_get_db(L, 1);
   lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, 2);
   lrocksdb_writebatch_t *rb = lrocksdb_get_writebatch(L, 3);
@@ -129,14 +177,14 @@ LUALIB_API int lrocksdb_write(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_close(lua_State *L) {
+static int lrocksdb_close(lua_State *L) {
   lrocksdb_t *d = lrocksdb_get_db(L, 1);
   rocksdb_close(d->db);
   d->open = 0;
   return 1;
 }
 
-LUALIB_API int lrocksdb_create_iterator(lua_State *L) {
+static int lrocksdb_create_iterator(lua_State *L) {
   lrocksdb_t *d = lrocksdb_get_db(L, 1);
   lrocksdb_readoptions_t *ro = lrocksdb_get_readoptions(L, 2);
   lrocksdb_iterator_t *i = (lrocksdb_iterator_t *)
@@ -146,7 +194,7 @@ LUALIB_API int lrocksdb_create_iterator(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_property_value(lua_State *L) {
+static int lrocksdb_property_value(lua_State *L) {
   lrocksdb_t *d = lrocksdb_get_db(L, 1);
   const char* propname = luaL_checkstring(L, 2);
   char *propvalue = rocksdb_property_value(d->db, propname);
@@ -160,7 +208,7 @@ LUALIB_API int lrocksdb_property_value(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int luaopen_rocksdb(lua_State *L) {
+DLL_PUBLIC int luaopen_rocksdb(lua_State *L) {
   lua_newtable(L);
 
   /* register classes */
