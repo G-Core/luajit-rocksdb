@@ -24,7 +24,7 @@ endif
 INC= $(LUA_INC) $(ROCKSDB_INC)
 LIB= $(LUA_LIB) $(ROCKSDB_LIB)
 WARN= -Wall
-CFLAGS= -O2 $(WARN) $(INC) -fvisibility=hidden
+CFLAGS= -O2 $(WARN) $(INC)  -fvisibility=hidden
 
 MYNAME= rocksdb
 MYLIB= $(MYNAME)

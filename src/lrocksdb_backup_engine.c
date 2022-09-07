@@ -1,6 +1,24 @@
 #include "lrocksdb_backup_engine.h"
 
-LUALIB_API int lrocksdb_backup_engine_reg(lua_State *L) {
+static int lrocksdb_backup_engine_create_new_backup(lua_State *L);
+static int lrocksdb_backup_engine_purge_old_backups(lua_State *L);
+static int lrocksdb_backup_engine_restore_db_from_latest_backup(lua_State *L);
+static int lrocksdb_backup_engine_get_backup_info_count(lua_State *L);
+static int lrocksdb_backup_engine_get_backup_info(lua_State *L);
+static int lrocksdb_backup_engine_close(lua_State *L);
+
+static const struct luaL_Reg backup_engine_reg[] = {
+  { "create_new_backup", lrocksdb_backup_engine_create_new_backup },
+  { "purge_old_backups", lrocksdb_backup_engine_purge_old_backups },
+  { "restore_db_from_latest_backup", lrocksdb_backup_engine_restore_db_from_latest_backup },
+  { "get_backup_info_count", lrocksdb_backup_engine_get_backup_info_count },
+  { "get_backup_info", lrocksdb_backup_engine_get_backup_info },
+  { "close", lrocksdb_backup_engine_close },
+  { "__gc", lrocksdb_backup_engine_close },
+  { NULL, NULL }
+};
+
+int lrocksdb_backup_engine_reg(lua_State *L) {
   lrocksdb_createmeta(L, "backup_engine", backup_engine_reg);
   return 1;
 }
@@ -12,7 +30,7 @@ lrocksdb_backup_engine_t *lrocksdb_get_backup_engine(lua_State *L, int index) {
   return o;
 }
 
-LUALIB_API int lrocksdb_backup_engine_open(lua_State *L) {
+int lrocksdb_backup_engine_open(lua_State *L) {
   lrocksdb_options_t *o = lrocksdb_get_options(L, 1);
   const char *path = luaL_checkstring(L, 2);
   char *err = NULL;
@@ -28,7 +46,7 @@ LUALIB_API int lrocksdb_backup_engine_open(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_backup_engine_create_new_backup(lua_State *L) {
+static int lrocksdb_backup_engine_create_new_backup(lua_State *L) {
   lrocksdb_backup_engine_t *be = lrocksdb_get_backup_engine(L, 1);
   lrocksdb_t *db = lrocksdb_get_db(L, 2);
   char *err = NULL;
@@ -41,7 +59,7 @@ LUALIB_API int lrocksdb_backup_engine_create_new_backup(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_backup_engine_purge_old_backups(lua_State *L) {
+static int lrocksdb_backup_engine_purge_old_backups(lua_State *L) {
   lrocksdb_backup_engine_t *be = lrocksdb_get_backup_engine(L, 1);
   uint32_t num_backups_to_keep = luaL_checknumber(L, 2);
   char *err = NULL;
@@ -54,7 +72,7 @@ LUALIB_API int lrocksdb_backup_engine_purge_old_backups(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_backup_engine_restore_db_from_latest_backup(lua_State *L) {
+static int lrocksdb_backup_engine_restore_db_from_latest_backup(lua_State *L) {
   lrocksdb_backup_engine_t *be = lrocksdb_get_backup_engine(L, 1);
   const char* db_dir = luaL_checkstring(L, 2);
   const char* wal_dir = luaL_checkstring(L, 3);
@@ -70,7 +88,7 @@ LUALIB_API int lrocksdb_backup_engine_restore_db_from_latest_backup(lua_State *L
   return 1;
 }
 
-LUALIB_API int lrocksdb_backup_engine_get_backup_info_count(lua_State *L) {
+static int lrocksdb_backup_engine_get_backup_info_count(lua_State *L) {
   lrocksdb_backup_engine_t *be = lrocksdb_get_backup_engine(L, 1);
   const rocksdb_backup_engine_info_t
     *info = rocksdb_backup_engine_get_backup_info(be->backup_engine);
@@ -82,7 +100,7 @@ LUALIB_API int lrocksdb_backup_engine_get_backup_info_count(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_backup_engine_get_backup_info(lua_State *L) {
+static int lrocksdb_backup_engine_get_backup_info(lua_State *L) {
   lrocksdb_backup_engine_t *be = lrocksdb_get_backup_engine(L, 1);
   int index = luaL_checkint(L, 2) - 1; //keeping with Lua indices start at 1
   const rocksdb_backup_engine_info_t
@@ -109,7 +127,7 @@ LUALIB_API int lrocksdb_backup_engine_get_backup_info(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_backup_engine_close(lua_State *L) {
+static int lrocksdb_backup_engine_close(lua_State *L) {
   lrocksdb_backup_engine_t *be = lrocksdb_get_backup_engine(L, 1);
   if(be->backup_engine != NULL) {
     rocksdb_backup_engine_close(be->backup_engine);

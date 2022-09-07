@@ -1,21 +1,55 @@
 #include "lrocksdb_options.h"
 
-LUALIB_API int lrocksdb_options_reg(lua_State *L) {
+static int lrocksdb_options_set(lua_State *L);
+static int lrocksdb_options_destroy(lua_State *L);
+static int lrocksdb_readoptions_destroy(lua_State *L);
+static int lrocksdb_writeoptions_destroy(lua_State *L);
+static int lrocksdb_restoreoptions_destroy(lua_State *L);
+
+
+
+static const struct luaL_Reg options_reg[] = {
+  { "set", lrocksdb_options_set },
+  { "destroy", lrocksdb_options_destroy },
+  { "__gc", lrocksdb_options_destroy },
+  { NULL, NULL }
+};
+
+static const struct luaL_Reg writeoptions_reg[] = {
+  { "__gc", lrocksdb_writeoptions_destroy },
+  { "destroy", lrocksdb_writeoptions_destroy },
+  { NULL, NULL }
+};
+
+static const struct luaL_Reg readoptions_reg[] = {
+  { "__gc", lrocksdb_readoptions_destroy },
+  { "destroy", lrocksdb_readoptions_destroy },
+  { NULL, NULL }
+};
+
+static const struct luaL_Reg restoreoptions_reg[] = {
+  { "__gc", lrocksdb_restoreoptions_destroy },
+  { "destroy", lrocksdb_restoreoptions_destroy },
+  { NULL, NULL }
+};
+
+
+int lrocksdb_options_reg(lua_State *L) {
   lrocksdb_createmeta(L, "options", options_reg);
   return 1;
 }
 
-LUALIB_API int lrocksdb_writeoptions_reg(lua_State *L) {
+int lrocksdb_writeoptions_reg(lua_State *L) {
   lrocksdb_createmeta(L, "writeoptions", writeoptions_reg);
   return 1;
 }
 
-LUALIB_API int lrocksdb_readoptions_reg(lua_State *L) {
+int lrocksdb_readoptions_reg(lua_State *L) {
   lrocksdb_createmeta(L, "readoptions", readoptions_reg);
   return 1;
 }
 
-LUALIB_API int lrocksdb_restoreoptions_reg(lua_State *L) {
+int lrocksdb_restoreoptions_reg(lua_State *L) {
   lrocksdb_createmeta(L, "restoreoptions", restoreoptions_reg);
   return 1;
 }
@@ -209,7 +243,7 @@ lrocksdb_options_t *lrocksdb_get_options(lua_State *L, int index) {
   return o;
 }
 
-LUALIB_API int lrocksdb_options_create(lua_State *L) {
+int lrocksdb_options_create(lua_State *L) {
   lrocksdb_options_t *o = (lrocksdb_options_t *) lua_newuserdata(L, sizeof(lrocksdb_options_t));
   o->options = rocksdb_options_create();
   lrocksdb_setmeta(L, "options");
@@ -219,7 +253,7 @@ LUALIB_API int lrocksdb_options_create(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_options_set(lua_State *L) {
+static int lrocksdb_options_set(lua_State *L) {
   lrocksdb_options_t *o = lrocksdb_get_options(L, 1);
   if(lua_istable(L, 1)) {
     lrocksdb_options_set_from_table(L, 1, o->options);
@@ -227,7 +261,7 @@ LUALIB_API int lrocksdb_options_set(lua_State *L) {
   return 0;
 }
 
-LUALIB_API int lrocksdb_options_destroy(lua_State *L) {
+static int lrocksdb_options_destroy(lua_State *L) {
   lrocksdb_options_t *o = lrocksdb_get_options(L, 1);
   if(o->options != NULL) {
     rocksdb_options_destroy(o->options);
@@ -256,7 +290,7 @@ void lrocksdb_writeoptions_set_from_table(lua_State *L, int index, rocksdb_write
   lua_pop(L, 1);
 }
 
-LUALIB_API int lrocksdb_writeoptions_create(lua_State *L) {
+int lrocksdb_writeoptions_create(lua_State *L) {
   lrocksdb_writeoptions_t *o = (lrocksdb_writeoptions_t *) lua_newuserdata(L, sizeof(lrocksdb_writeoptions_t));
   o->writeoptions = rocksdb_writeoptions_create();
   lrocksdb_setmeta(L, "writeoptions");
@@ -266,7 +300,7 @@ LUALIB_API int lrocksdb_writeoptions_create(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_writeoptions_destroy(lua_State *L) {
+static int lrocksdb_writeoptions_destroy(lua_State *L) {
   lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, 1);
   if(wo != NULL && wo->writeoptions != NULL) {
     rocksdb_writeoptions_destroy(wo->writeoptions);
@@ -294,7 +328,7 @@ void lrocksdb_readoptions_set_from_table(lua_State *L, int index, rocksdb_readop
   lua_pop(L, 1);
 }
 
-LUALIB_API int lrocksdb_readoptions_create(lua_State *L) {
+int lrocksdb_readoptions_create(lua_State *L) {
   lrocksdb_readoptions_t *o = (lrocksdb_readoptions_t *) lua_newuserdata(L, sizeof(lrocksdb_readoptions_t));
   o->readoptions = rocksdb_readoptions_create();
   lrocksdb_setmeta(L, "readoptions");
@@ -304,7 +338,7 @@ LUALIB_API int lrocksdb_readoptions_create(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_readoptions_destroy(lua_State *L) {
+static int lrocksdb_readoptions_destroy(lua_State *L) {
   lrocksdb_readoptions_t *ro = lrocksdb_get_readoptions(L, 1);
   if(ro != NULL && ro->readoptions != NULL) {
     rocksdb_readoptions_destroy(ro->readoptions);
@@ -338,7 +372,7 @@ void lrocksdb_restoreoptions_set_from_table(lua_State *L, int index, rocksdb_res
   lua_pop(L, 1);
 }
 
-LUALIB_API int lrocksdb_restoreoptions_create(lua_State *L) {
+int lrocksdb_restoreoptions_create(lua_State *L) {
   lrocksdb_restoreoptions_t *o = (lrocksdb_restoreoptions_t*) lua_newuserdata(L,
                                           sizeof(lrocksdb_restoreoptions_t));
   o->restoreoptions = rocksdb_restore_options_create();
@@ -349,7 +383,7 @@ LUALIB_API int lrocksdb_restoreoptions_create(lua_State *L) {
   return 1;
 }
 
-LUALIB_API int lrocksdb_restoreoptions_destroy(lua_State *L) {
+static int lrocksdb_restoreoptions_destroy(lua_State *L) {
   lrocksdb_restoreoptions_t *o = lrocksdb_get_restoreoptions(L, 1);
   if(o != NULL && o->restoreoptions != NULL) {
     rocksdb_restore_options_destroy(o->restoreoptions);

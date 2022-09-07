@@ -59,7 +59,6 @@ lrocksdb_t *lrocksdb_get_db(lua_State *L, int index) {
   return o;
 }
 
-
 static int lrocksdb_open(lua_State *L) {
   lrocksdb_options_t *o = lrocksdb_get_options(L, 1);
   const char *path = luaL_checkstring(L, 2);
