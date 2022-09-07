@@ -1,4 +1,4 @@
-#include "lrocksdb_options.h"
+#include "lrocksdb/options.h"
 
 static int lrocksdb_options_set(lua_State *L);
 static int lrocksdb_options_destroy(lua_State *L);

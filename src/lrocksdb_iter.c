@@ -1,4 +1,4 @@
-#include "lrocksdb_iter.h"
+#include "lrocksdb/iter.h"
 
 static int lrocksdb_iter_valid(lua_State *L);
 static int lrocksdb_iter_seek_to_first(lua_State *L);

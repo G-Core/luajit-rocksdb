@@ -1,4 +1,4 @@
-#include "lrocksdb.h"
+#include "lrocksdb/db.h"
 
 #define LROCKSDB_VERSION "lua-rocksdb 0.0.1"
 #define LROCKSDB_COPYRIGHT "Copyright (C) 2016, Zaher Marzuq"

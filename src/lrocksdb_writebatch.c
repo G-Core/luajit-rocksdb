@@ -1,4 +1,4 @@
-#include "lrocksdb_writebatch.h"
+#include "lrocksdb/writebatch.h"
 
 int lrocksdb_writebatch_reg(lua_State *L);
 int lrocksdb_writebatch_create(lua_State *L);

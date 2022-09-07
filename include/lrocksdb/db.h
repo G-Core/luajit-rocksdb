@@ -1,10 +1,5 @@
 #ifndef LROCKSDB_H
 #define LROCKSDB_H
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <luajit/lauxlib.h>
 #if defined _WIN32 || defined __CYGWIN__
   #ifdef BUILDING_DLL
     #ifdef __GNUC__
@@ -31,13 +26,10 @@
 #endif
 
 #include "rocksdb/c.h"
-#include "lrocksdb_helpers.h"
-#include "lrocksdb_types.h"
-#include "lrocksdb_db.h"
-#include "lrocksdb_options.h"
-#include "lrocksdb_backup_engine.h"
-#include "lrocksdb_writebatch.h"
-#include "lrocksdb_iter.h"
+#include "lrocksdb/db_db.h"
+#include "lrocksdb/backup_engine.h"
+#include "lrocksdb/writebatch.h"
+#include "lrocksdb/iter.h"
 
 
 #endif

@@ -6,7 +6,7 @@ INC_PATH= $(HOME)/.local/include
 BIN_PATH= $(HOME)/.local/lib/bin
 LUA_LIB= -L$(LIB_PATH) -lluajit-5.1
 LUA_INC= -I$(INC_PATH)
-ROCKSDB_INC=
+ROCKSDB_INC= -I./include
 ROCKSDB_LIB= -lrocksdb
 EXTRACFLAGS= -std=c99 -fPIC
 

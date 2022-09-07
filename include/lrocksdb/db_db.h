@@ -6,9 +6,9 @@
 #include <stdint.h>
 #include <luajit/lauxlib.h>
 
-#include "lrocksdb_helpers.h"
-#include "lrocksdb_types.h"
-#include "lrocksdb_options.h"
+#include "lrocksdb/helpers.h"
+#include "lrocksdb/types.h"
+#include "lrocksdb/options.h"
 
 
 lrocksdb_t *lrocksdb_get_db(lua_State *L, int index);

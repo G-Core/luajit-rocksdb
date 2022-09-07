@@ -1,4 +1,4 @@
-#include "lrocksdb_helpers.h"
+#include "lrocksdb/helpers.h"
 
 #if !defined LUA_VERSION_NUM || LUA_VERSION_NUM==501
 LUALIB_API void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup) {

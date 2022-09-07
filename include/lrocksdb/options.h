@@ -2,8 +2,8 @@
 #define LROCKSDB_OPTIONS_H
 #include <string.h>
 #include <luajit/lauxlib.h>
-#include "lrocksdb_types.h"
-#include "lrocksdb_helpers.h"
+#include "lrocksdb/types.h"
+#include "lrocksdb/helpers.h"
 
 lrocksdb_options_t *lrocksdb_get_options(lua_State *L, int index);
 int lrocksdb_options_reg(lua_State *L);
