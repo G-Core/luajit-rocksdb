@@ -27,14 +27,13 @@ WARN= -Wall
 CFLAGS= -O2 $(WARN) $(INC)  -fvisibility=hidden
 
 MYNAME= rocksdb
-MYLIB= $(MYNAME)
-T= $(MYLIB).so
-OBJS= src/l$(MYLIB).o \
-			src/l$(MYLIB)_helpers.o \
-			src/l$(MYLIB)_options.o \
-			src/l$(MYLIB)_backup_engine.o \
-			src/l$(MYLIB)_writebatch.o \
-			src/l$(MYLIB)_iter.o
+MYLIB= 
+T= $(MYNAME).so
+OBJS= src/db.o \
+			src/options.o \
+			src/backup_engine.o \
+			src/writebatch.o \
+			src/iter.o
 
 all: $T
 
