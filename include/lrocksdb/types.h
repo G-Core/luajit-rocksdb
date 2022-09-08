@@ -1,6 +1,8 @@
 #ifndef LROCKSDB_TYPES_H
 #define LROCKSDB_TYPES_H
+extern "C" {
 #include "rocksdb/c.h"
+}
 
 typedef  struct {
  rocksdb_options_t *options;

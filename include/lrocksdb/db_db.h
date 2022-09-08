@@ -4,8 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+extern "C" {
 #include <luajit/lauxlib.h>
-
+}
 #include "lrocksdb/helpers.h"
 #include "lrocksdb/types.h"
 #include "lrocksdb/options.h"

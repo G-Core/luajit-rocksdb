@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+extern "C" {
 #include <luajit/lauxlib.h>
+}
 #include "lrocksdb/db_db.h"
 
 lrocksdb_backup_engine_t *lrocksdb_get_backup_engine(lua_State *L, int index);

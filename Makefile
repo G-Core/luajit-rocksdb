@@ -8,8 +8,8 @@ LUA_LIB= -L$(LIB_PATH) -lluajit-5.1
 LUA_INC= -I$(INC_PATH)
 ROCKSDB_INC= -I./include
 ROCKSDB_LIB= -lrocksdb
-EXTRACFLAGS= -std=c99 -fPIC
-
+#EXTRACFLAGS= -std=c99 -fPIC
+EXTRACFLAGS= -fpic
 # change these based on your installation
 ifeq ($(UNAME), Darwin)
 	LIB_PATH= /usr/local/lib
@@ -30,6 +30,7 @@ MYNAME= rocksdb
 MYLIB= 
 T= $(MYNAME).so
 OBJS= src/db.o \
+			src/helpers.o \
 			src/options.o \
 			src/backup_engine.o \
 			src/writebatch.o \
@@ -37,7 +38,7 @@ OBJS= src/db.o \
 
 all: $T
 
-%.o: %.c
+%.o: %.cc
 	$(CC) $(CFLAGS) -fPIC -c -o $@ $<
 
 $T:	$(OBJS)

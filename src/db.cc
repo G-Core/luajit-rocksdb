@@ -206,7 +206,9 @@ static int lrocksdb_property_value(lua_State *L) {
   }
   return 1;
 }
-
+#ifdef __cplusplus
+extern "C"
+#endif
 DLL_PUBLIC int luaopen_rocksdb(lua_State *L) {
   lua_newtable(L);
 

@@ -24,8 +24,9 @@
     #define DLL_LOCAL
   #endif
 #endif
-
+extern "C" {
 #include "rocksdb/c.h"
+}
 #include "lrocksdb/db_db.h"
 #include "lrocksdb/backup_engine.h"
 #include "lrocksdb/writebatch.h"
