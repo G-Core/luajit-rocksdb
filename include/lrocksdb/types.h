@@ -21,10 +21,13 @@ typedef  struct {
 } lrocksdb_restoreoptions_t;
 
 typedef struct {
-  rocksdb_t *db;
-  lrocksdb_options_t *options;
-  unsigned char open;
-  unsigned char read_only;
+    rocksdb_t *db;
+    lrocksdb_options_t *options;
+    rocksdb_column_family_handle_t* *handles ;
+    rocksdb_options_t*  const *cf_opts ; 
+    unsigned int column_count;
+    unsigned char open;
+    unsigned char read_only;
 } lrocksdb_t;
 
 typedef struct {
