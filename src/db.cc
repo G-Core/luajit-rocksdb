@@ -13,6 +13,7 @@ namespace {
     int close(lua_State *L);
     int open_for_read_only(lua_State *L);
     int remove(lua_State *L);
+    int remove_with_cf(lua_State *L);
     int write(lua_State *L);
     int create_iterator(lua_State *L);
     int property_value(lua_State *L);
@@ -22,7 +23,8 @@ namespace {
         { "close", close },
         { "get_with_cf", get_with_cf },
         { "get", get },
-        { "delete", remove },
+        { "delete_with_cf", remove_with_cf },
+        { "delete", remove},
         { "write", write },
         { "iterator", create_iterator },
         { "property_value", property_value },
@@ -93,6 +95,7 @@ namespace {
             cf_opts[i] = cf_options; 
             cf_names[i] = luaL_checkstring(L,3+i);
         }
+        //rocksdb_column_family_handle_t** handles =
         rocksdb_column_family_handle_t** handles =
             (rocksdb_column_family_handle_t**)malloc((argc-2) *sizeof (rocksdb_column_family_handle_t*)); 
         rocksdb_t *db = rocksdb_open_column_families(
@@ -248,6 +251,24 @@ namespace {
 
         key = luaL_checklstring(L, 3, &key_len);
         rocksdb_delete(d->db, wo->writeoptions, key, key_len, &err);
+        if(err) {
+            luaL_error(L, err);
+            free(err);
+            return 0;
+        }
+        lua_pushnil(L);
+        return 1;
+    }
+    int remove_with_cf(lua_State* L){
+        lrocksdb_t *d = lrocksdb_get_db(L, 1);
+        lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, 2);
+        size_t key_len;
+        const char *key;
+        char *err = NULL;
+        int argc =2;
+        int db_index = luaL_checkint(L, ++argc);
+        key = luaL_checklstring(L, ++argc, &key_len);
+        rocksdb_delete_cf(d->db, wo->writeoptions, d->handles[db_index-1], key, key_len, &err);
         if(err) {
             luaL_error(L, err);
             free(err);

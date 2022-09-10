@@ -39,6 +39,13 @@ for i = 0, 1000 do
   assert(value == expected_value)
 end
 print("done: get")
+print("delete: start", key)
+key = "lrocks_db_key:delete_me"
+db:put_with_cf(writeoptions,1, key, "delete")
+db:delete_with_cf(writeoptions, 1, key)
+value = db:get_with_cf(readoptions, 1, key)
+print("delete: end", key, type(value), value, "-")
+assert(value == nil)
 db:close()
 print("closed")
 
