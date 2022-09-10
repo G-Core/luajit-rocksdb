@@ -111,12 +111,12 @@ namespace {
             free(cf_names);
             return 0;
         }
-        free(cf_names);
         lrocksdb_t *d = (lrocksdb_t *) lua_newuserdata(L, sizeof(lrocksdb_t));
         d->db = db;
         d->options = o;
         d->open = 1;
         d->column_count = argc -2;
+        d->cf_names = cf_names;
         d->cf_opts = cf_opts;
         d->handles = handles;
         lrocksdb_setmeta(L, "db");
@@ -292,6 +292,17 @@ namespace {
         lua_pushboolean(L, 1);
         return 1;
     }
+    rocksdb_column_family_handle_t *get_cf_handle(lrocksdb_t* d, const char* name)
+    {
+        rocksdb_column_family_handle_t* retval = NULL;
+        for(unsigned int i = 0; i < d->column_count; ++i) {
+            if (strcmp(d->cf_names[i],name)==0){
+                retval = d->handles[i];
+                break;
+            }
+        }
+        return retval;
+    }
 
     int close(lua_State *L) {
         lrocksdb_t *d = lrocksdb_get_db(L, 1);
@@ -302,7 +313,8 @@ namespace {
         rocksdb_close(d->db);
         if (d->column_count > 0) {
             free(d->handles);
-        rocksdb_options_destroy(d->cf_opts[0]);
+            free(d->cf_names);
+            rocksdb_options_destroy(d->cf_opts[0]);
             free(const_cast<rocksdb_options_t**>(d->cf_opts));
         }
         return 1;
