@@ -279,9 +279,9 @@ namespace {
             rocksdb_column_family_handle_destroy(d->handles[i]);
         }
         rocksdb_close(d->db);
-        rocksdb_options_destroy(d->cf_opts[0]);
         if (d->column_count > 0) {
             free(d->handles);
+        rocksdb_options_destroy(d->cf_opts[0]);
             free(const_cast<rocksdb_options_t**>(d->cf_opts));
         }
         return 1;
