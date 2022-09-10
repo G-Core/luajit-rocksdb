@@ -17,6 +17,7 @@ namespace {
     int write(lua_State *L);
     int create_iterator(lua_State *L);
     int property_value(lua_State *L);
+    rocksdb_column_family_handle_t *get_cf_handle(lrocksdb_t* d, const char* name, int len);
     const struct luaL_Reg  lrocksdb_db_reg[] = {
         { "put_with_cf", put_with_cf},
         { "put", put },
@@ -174,13 +175,12 @@ namespace {
         int argc=0;
         lrocksdb_t *d = lrocksdb_get_db(L, ++argc);
         lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L,++argc);
-        size_t key_len, value_len;
-        const char *key, *value;
+        size_t key_len, value_len,cf_name_len;
         char *err = NULL;
-        int k = luaL_checkint(L,++argc);
-        key = luaL_checklstring(L, ++argc, &key_len);
-        value = luaL_checklstring(L, ++argc, &value_len);
-        rocksdb_put_cf(d->db, wo->writeoptions, d->handles[k-1], key, key_len, value, value_len, &err);
+        const char* cf_name = luaL_checklstring(L, ++argc, &cf_name_len);
+        const char* key = luaL_checklstring(L, ++argc, &key_len);
+        const char *value = luaL_checklstring(L, ++argc, &value_len);
+        rocksdb_put_cf(d->db, wo->writeoptions, get_cf_handle(d,cf_name,cf_name_len), key, key_len, value, value_len, &err);
         if(err) {
             luaL_error(L, err);
             free(err);
@@ -216,14 +216,14 @@ namespace {
         lrocksdb_t *d = lrocksdb_get_db(L, ++argc);
         lrocksdb_assert(L, d->open, "db is closed");
         lrocksdb_readoptions_t *ro = lrocksdb_get_readoptions(L,++argc);
-        int k = luaL_checkint(L, ++argc);
-        size_t key_len, value_len;
+        size_t key_len, value_len, cf_name_len;
+        const char *cf_name = luaL_checklstring(L,++argc, &cf_name_len);
         const char *key = luaL_checklstring(L,++argc, &key_len);
         char *err = NULL;
         char *value = rocksdb_get_cf(
                 d->db, 
                 ro->readoptions, 
-                d->handles[k-1],
+                get_cf_handle(d, cf_name,cf_name_len),
                 key, key_len,
                 &value_len, 
                 &err);
@@ -262,13 +262,12 @@ namespace {
     int remove_with_cf(lua_State* L){
         lrocksdb_t *d = lrocksdb_get_db(L, 1);
         lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, 2);
-        size_t key_len;
-        const char *key;
         char *err = NULL;
         int argc =2;
-        int db_index = luaL_checkint(L, ++argc);
-        key = luaL_checklstring(L, ++argc, &key_len);
-        rocksdb_delete_cf(d->db, wo->writeoptions, d->handles[db_index-1], key, key_len, &err);
+        size_t key_len,  cf_name_len;
+        const char* cf_name = luaL_checklstring(L,++argc, &cf_name_len);
+        const char* key = luaL_checklstring(L, ++argc, &key_len);
+        rocksdb_delete_cf(d->db, wo->writeoptions, get_cf_handle(d,cf_name,cf_name_len) , key, key_len, &err);
         if(err) {
             luaL_error(L, err);
             free(err);
@@ -292,11 +291,11 @@ namespace {
         lua_pushboolean(L, 1);
         return 1;
     }
-    rocksdb_column_family_handle_t *get_cf_handle(lrocksdb_t* d, const char* name)
+    rocksdb_column_family_handle_t *get_cf_handle(lrocksdb_t* d, const char* name, int len)
     {
         rocksdb_column_family_handle_t* retval = NULL;
         for(unsigned int i = 0; i < d->column_count; ++i) {
-            if (strcmp(d->cf_names[i],name)==0){
+            if (strncmp(d->cf_names[i],name,len)==0){
                 retval = d->handles[i];
                 break;
             }
