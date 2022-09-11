@@ -4,12 +4,14 @@
 #define LROCKSDB_DESCRIPTION "RocksDB binding for Lua"
 namespace {
     int reg(lua_State *L);
+    int cf_reg(lua_State *L);
     int open_db(lua_State *L);
     int put(lua_State *L);
     int get(lua_State *L);
     int open_with_cf(lua_State *L);
     int put_with_cf(lua_State *L);
     int get_with_cf(lua_State *L);
+    int close_with_cf(lua_State *L);
     int close(lua_State *L);
     int open_for_read_only(lua_State *L);
     int remove(lua_State *L);
@@ -18,13 +20,18 @@ namespace {
     int create_iterator(lua_State *L);
     int property_value(lua_State *L);
     rocksdb_column_family_handle_t *get_cf_handle(lrocksdb_t* d, const char* name, int len);
+    const char* column_family="column_family";
+    const struct luaL_Reg  lrocksdb_cf_reg[] = {
+        { "put", put_with_cf},
+        { "get", get_with_cf },
+        { "delete", remove_with_cf },
+        { "close", close_with_cf },
+        { NULL, NULL }
+    };
     const struct luaL_Reg  lrocksdb_db_reg[] = {
-        { "put_with_cf", put_with_cf},
         { "put", put },
         { "close", close },
-        { "get_with_cf", get_with_cf },
         { "get", get },
-        { "delete_with_cf", remove_with_cf },
         { "delete", remove},
         { "write", write },
         { "iterator", create_iterator },
@@ -33,6 +40,7 @@ namespace {
     };
 
     const struct luaL_Reg  lrocksdb_regs[] = {
+        { column_family, cf_reg },
         { "db", reg },
         { "options",  lrocksdb_options_reg },
         { "writeoptions",  lrocksdb_writeoptions_reg },
@@ -57,6 +65,10 @@ namespace {
         { NULL, NULL }
     };
 
+    int cf_reg(lua_State *L) {
+        lrocksdb_createmeta(L, column_family, lrocksdb_cf_reg);
+        return 1;
+    }
     int reg(lua_State *L) {
         lrocksdb_createmeta(L, "db", lrocksdb_db_reg);
         return 1;
@@ -104,6 +116,7 @@ namespace {
                 );
         if(err) {
             luaL_error(L, err);
+            fprintf(stderr,"fine here %d", __LINE__);
             free(err);
             free(handles);
             for(int i=0; i<argc-2; ++i) 
@@ -113,6 +126,7 @@ namespace {
             return 0;
         }
         lrocksdb_t *d = (lrocksdb_t *) lua_newuserdata(L, sizeof(lrocksdb_t));
+            fprintf(stderr,"fine here %d", __LINE__);
         d->db = db;
         d->options = o;
         d->open = 1;
@@ -120,8 +134,9 @@ namespace {
         d->cf_names = cf_names;
         d->cf_opts = cf_opts;
         d->handles = handles;
-        lrocksdb_setmeta(L, "db");
+        lrocksdb_setmeta(L, column_family);
 
+            fprintf(stderr,"fine here %d", __LINE__);
         return 1;
     }
 
@@ -148,12 +163,6 @@ namespace {
         lrocksdb_setmeta(L, "db");
         return 1;
     }
-#if 0
-    extern ROCKSDB_LIBRARY_API void rocksdb_put_cf(
-            rocksdb_t* db, const rocksdb_writeoptions_t* options,
-            rocksdb_column_family_handle_t* column_family, const char* key,
-            size_t keylen, const char* val, size_t vallen, char** errptr);
-#endif
     int put(lua_State *L) {
         lrocksdb_t *d = lrocksdb_get_db(L, 1);
         lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, 2);
@@ -173,7 +182,7 @@ namespace {
     }
     int put_with_cf(lua_State* L) {
         int argc=0;
-        lrocksdb_t *d = lrocksdb_get_db(L, ++argc);
+        lrocksdb_t *d = lrocksdb_get_cf(L, ++argc);
         lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L,++argc);
         size_t key_len, value_len,cf_name_len;
         char *err = NULL;
@@ -213,7 +222,7 @@ namespace {
     }
     int get_with_cf(lua_State* L){
         int argc = 0;
-        lrocksdb_t *d = lrocksdb_get_db(L, ++argc);
+        lrocksdb_t *d = lrocksdb_get_cf(L, ++argc);
         lrocksdb_assert(L, d->open, "db is closed");
         lrocksdb_readoptions_t *ro = lrocksdb_get_readoptions(L,++argc);
         size_t key_len, value_len, cf_name_len;
@@ -260,7 +269,7 @@ namespace {
         return 1;
     }
     int remove_with_cf(lua_State* L){
-        lrocksdb_t *d = lrocksdb_get_db(L, 1);
+        lrocksdb_t *d = lrocksdb_get_cf(L, 1);
         lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, 2);
         char *err = NULL;
         int argc =2;
@@ -303,6 +312,21 @@ namespace {
         return retval;
     }
 
+    int close_with_cf(lua_State *L) {
+        lrocksdb_t *d = lrocksdb_get_cf(L, 1);
+        d->open = 0;
+        for (unsigned int i = 0; i < d->column_count; ++i) {
+            rocksdb_column_family_handle_destroy(d->handles[i]);
+        }
+        rocksdb_close(d->db);
+        if (d->column_count > 0) {
+            free(d->handles);
+            free(d->cf_names);
+            rocksdb_options_destroy(d->cf_opts[0]);
+            free(const_cast<rocksdb_options_t**>(d->cf_opts));
+        }
+        return 1;
+    }
     int close(lua_State *L) {
         lrocksdb_t *d = lrocksdb_get_db(L, 1);
         d->open = 0;
@@ -365,9 +389,14 @@ DLL_PUBLIC int luaopen_rocksdb(lua_State *L) {
 
   return 1;
 }
-
+    lrocksdb_t *lrocksdb_get_cf(lua_State *L, int index) {
+        lrocksdb_t *o = (lrocksdb_t *) luaL_checkudata(L, index, column_family);
+        luaL_argcheck(L, o != NULL && o->db != NULL, index, "cf expected");
+        return o;
+    }
     lrocksdb_t *lrocksdb_get_db(lua_State *L, int index) {
         lrocksdb_t *o = (lrocksdb_t *) luaL_checkudata(L, index, "db");
         luaL_argcheck(L, o != NULL && o->db != NULL, index, "db expected");
         return o;
     }
+

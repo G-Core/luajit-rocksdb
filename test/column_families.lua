@@ -27,7 +27,7 @@ print("start: put")
 for i = 0, 1000 do
   key = format("lrocks_db_key:%d", i)
   value = format("lrocks_db_value:%d", i)
-  db:put_with_cf(writeoptions, "columna" , key, value)
+  db:put(writeoptions, "columna" , key, value)
 end
 print("done: put")
 
@@ -35,15 +35,15 @@ print("start: get")
 for i = 0, 1000 do
   key = format("lrocks_db_key:%d", i)
   expected_value = format("lrocks_db_value:%d", i)
-  value = db:get_with_cf(readoptions,"columna", key)
+  value = db:get(readoptions,"columna", key)
   assert(value == expected_value)
 end
 print("done: get")
 print("delete: start", key)
 key = "lrocks_db_key:delete_me"
-db:put_with_cf(writeoptions,"columna" , key, "delete")
-db:delete_with_cf(writeoptions, "columna" , key)
-value = db:get_with_cf(readoptions,"columna" , key)
+db:put(writeoptions,"columna" , key, "delete")
+db:delete(writeoptions, "columna" , key)
+value = db:get(readoptions,"columna" , key)
 print("delete: end", key, type(value), value, "-")
 assert(value == nil)
 db:close()
