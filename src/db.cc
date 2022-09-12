@@ -11,6 +11,7 @@ namespace {
     int open_with_cf(lua_State *L);
     int put_with_cf(lua_State *L);
     int get_with_cf(lua_State *L);
+    int property_value_cf(lua_State *L);
     int close_with_cf(lua_State *L);
     int close(lua_State *L);
     int open_for_read_only(lua_State *L);
@@ -26,6 +27,7 @@ namespace {
         { "get", get_with_cf },
         { "delete", remove_with_cf },
         { "close", close_with_cf },
+        { "property_value", property_value_cf },
         { NULL, NULL }
     };
     const struct luaL_Reg  lrocksdb_db_reg[] = {
@@ -346,6 +348,22 @@ namespace {
         lrocksdb_t *d = lrocksdb_get_db(L, 1);
         const char* propname = luaL_checkstring(L, 2);
         char *propvalue = rocksdb_property_value(d->db, propname);
+        if(propvalue != NULL) {
+            lua_pushstring(L, propvalue);
+            free(propvalue);
+        }
+        else {
+            lua_pushnil(L);
+        }
+        return 1;
+    }
+    int property_value_cf(lua_State* L){
+        lrocksdb_cf_t *d = lrocksdb_get_cf(L, 1);
+        int argc =1;
+        size_t cf_len=0;
+        const char* cf_name = luaL_checklstring(L,++argc, &cf_len);
+        const char* propname = luaL_checkstring(L, ++argc);
+        char *propvalue = rocksdb_property_value_cf(d->db,get_cf_handle(d,cf_name,cf_len), propname);
         if(propvalue != NULL) {
             lua_pushstring(L, propvalue);
             free(propvalue);

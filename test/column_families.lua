@@ -39,6 +39,10 @@ for i = 0, 1000 do
   assert(value == expected_value)
 end
 print("done: get")
+local prop = db:property_value("columna","rocksdb.stats")
+if prop ~= nil then
+    print(prop)
+end
 print("delete: start", key)
 key = "lrocks_db_key:delete_me"
 db:put(writeoptions,"columna" , key, "delete")
