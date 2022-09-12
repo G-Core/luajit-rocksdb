@@ -19,7 +19,7 @@ namespace {
     int write(lua_State *L);
     int create_iterator(lua_State *L);
     int property_value(lua_State *L);
-    rocksdb_column_family_handle_t *get_cf_handle(lrocksdb_t* d, const char* name, int len);
+    rocksdb_column_family_handle_t *get_cf_handle(lrocksdb_cf_t* d, const char* name, int len);
     const char* column_family="column_family";
     const struct luaL_Reg  lrocksdb_cf_reg[] = {
         { "put", put_with_cf},
@@ -90,7 +90,6 @@ namespace {
         d->db = db;
         d->options = o;
         d->open = 1;
-        d->column_count = 0;
         lrocksdb_setmeta(L, "db");
 
         return 1;
@@ -125,7 +124,7 @@ namespace {
             free(cf_names);
             return 0;
         }
-        lrocksdb_t *d = (lrocksdb_t *) lua_newuserdata(L, sizeof(lrocksdb_t));
+        lrocksdb_cf_t *d = (lrocksdb_cf_t *) lua_newuserdata(L, sizeof(lrocksdb_cf_t));
             fprintf(stderr,"fine here %d", __LINE__);
         d->db = db;
         d->options = o;
@@ -154,10 +153,9 @@ namespace {
             return 0;
         }
 
-        lrocksdb_t *d = (lrocksdb_t *) lua_newuserdata(L, sizeof(lrocksdb_t));
+        lrocksdb_cf_t *d = (lrocksdb_cf_t *) lua_newuserdata(L, sizeof(lrocksdb_cf_t));
         d->db = db;
         d->options = o;
-        d->column_count = 0;
         d->open = 1;
         d->read_only = 1;
         lrocksdb_setmeta(L, "db");
@@ -182,7 +180,7 @@ namespace {
     }
     int put_with_cf(lua_State* L) {
         int argc=0;
-        lrocksdb_t *d = lrocksdb_get_cf(L, ++argc);
+        lrocksdb_cf_t *d = lrocksdb_get_cf(L, ++argc);
         lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L,++argc);
         size_t key_len, value_len,cf_name_len;
         char *err = NULL;
@@ -222,7 +220,7 @@ namespace {
     }
     int get_with_cf(lua_State* L){
         int argc = 0;
-        lrocksdb_t *d = lrocksdb_get_cf(L, ++argc);
+        lrocksdb_cf_t *d = lrocksdb_get_cf(L, ++argc);
         lrocksdb_assert(L, d->open, "db is closed");
         lrocksdb_readoptions_t *ro = lrocksdb_get_readoptions(L,++argc);
         size_t key_len, value_len, cf_name_len;
@@ -269,7 +267,7 @@ namespace {
         return 1;
     }
     int remove_with_cf(lua_State* L){
-        lrocksdb_t *d = lrocksdb_get_cf(L, 1);
+        lrocksdb_cf_t *d = lrocksdb_get_cf(L, 1);
         lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, 2);
         char *err = NULL;
         int argc =2;
@@ -300,7 +298,7 @@ namespace {
         lua_pushboolean(L, 1);
         return 1;
     }
-    rocksdb_column_family_handle_t *get_cf_handle(lrocksdb_t* d, const char* name, int len)
+    rocksdb_column_family_handle_t *get_cf_handle(lrocksdb_cf_t* d, const char* name, int len)
     {
         rocksdb_column_family_handle_t* retval = NULL;
         for(unsigned int i = 0; i < d->column_count; ++i) {
@@ -313,7 +311,7 @@ namespace {
     }
 
     int close_with_cf(lua_State *L) {
-        lrocksdb_t *d = lrocksdb_get_cf(L, 1);
+        lrocksdb_cf_t *d = lrocksdb_get_cf(L, 1);
         d->open = 0;
         for (unsigned int i = 0; i < d->column_count; ++i) {
             rocksdb_column_family_handle_destroy(d->handles[i]);
@@ -330,16 +328,7 @@ namespace {
     int close(lua_State *L) {
         lrocksdb_t *d = lrocksdb_get_db(L, 1);
         d->open = 0;
-        for (unsigned int i = 0; i < d->column_count; ++i) {
-            rocksdb_column_family_handle_destroy(d->handles[i]);
-        }
         rocksdb_close(d->db);
-        if (d->column_count > 0) {
-            free(d->handles);
-            free(d->cf_names);
-            rocksdb_options_destroy(d->cf_opts[0]);
-            free(const_cast<rocksdb_options_t**>(d->cf_opts));
-        }
         return 1;
     }
 
@@ -389,8 +378,8 @@ DLL_PUBLIC int luaopen_rocksdb(lua_State *L) {
 
   return 1;
 }
-    lrocksdb_t *lrocksdb_get_cf(lua_State *L, int index) {
-        lrocksdb_t *o = (lrocksdb_t *) luaL_checkudata(L, index, column_family);
+    lrocksdb_cf_t *lrocksdb_get_cf(lua_State *L, int index) {
+        lrocksdb_cf_t *o = (lrocksdb_cf_t *) luaL_checkudata(L, index, column_family);
         luaL_argcheck(L, o != NULL && o->db != NULL, index, "cf expected");
         return o;
     }

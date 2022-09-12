@@ -23,13 +23,19 @@ typedef  struct {
 typedef struct {
     rocksdb_t *db;
     lrocksdb_options_t *options;
+    unsigned char open;
+    unsigned char read_only;
+} lrocksdb_t;
+typedef struct {
+    rocksdb_t *db;
+    lrocksdb_options_t *options;
     rocksdb_column_family_handle_t* *handles ;
     rocksdb_options_t*  const *cf_opts ; 
     const char* *cf_names;
     unsigned int column_count;
     unsigned char open;
     unsigned char read_only;
-} lrocksdb_t;
+} lrocksdb_cf_t;
 
 typedef struct {
   rocksdb_backup_engine_t *backup_engine;
