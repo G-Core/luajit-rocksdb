@@ -2,30 +2,28 @@
 #define LROCKSDB_VERSION "lua-rocksdb 0.0.1"
 #define LROCKSDB_COPYRIGHT "Copyright (C) 2016, Zaher Marzuq; 2022 Joe Mariadassou"
 #define LROCKSDB_DESCRIPTION "RocksDB binding for Lua"
-    int cf_reg(lua_State *L);
-    int open_with_cf(lua_State *L);
 namespace {
-    int put_with_cf(lua_State *L);
-    int get_with_cf(lua_State *L);
-    int property_value_cf(lua_State *L);
-    int create_iterator_cf(lua_State *L);
-    int close_with_cf(lua_State *L);
-    int remove_with_cf(lua_State *L);
+    int put(lua_State *L);
+    int get(lua_State *L);
+    int property_value(lua_State *L);
+    int create_iterator(lua_State *L);
+    int close(lua_State *L);
+    int remove(lua_State *L);
     rocksdb_column_family_handle_t *get_cf_handle(lrocksdb_cf_t* d, const char* name, int len);
     const char* column_family="column_family";
     const struct luaL_Reg  lrocksdb_cf_reg[] = {
-        { "put", put_with_cf},
-        { "get", get_with_cf },
-        { "delete", remove_with_cf },
-        { "close", close_with_cf },
-        { "iterator", create_iterator_cf },
-        { "property_value", property_value_cf },
+        { "put", put},
+        { "get", get},
+        { "delete", remove},
+        { "close", close},
+        { "iterator", create_iterator},
+        { "property_value", property_value},
         { NULL, NULL }
     };
 
 
 
-    int put_with_cf(lua_State* L) {
+    int put(lua_State* L) {
         int argc=0;
         lrocksdb_cf_t *d = lrocksdb_get_cf(L, ++argc);
         lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L,++argc);
@@ -43,7 +41,7 @@ namespace {
         return 1;
     }
 
-    int get_with_cf(lua_State* L){
+    int get(lua_State* L){
         int argc = 0;
         lrocksdb_cf_t *d = lrocksdb_get_cf(L, ++argc);
         lrocksdb_assert(L, d->open, "db is closed");
@@ -74,7 +72,7 @@ namespace {
         return 1;
     }
 
-    int remove_with_cf(lua_State* L){
+    int remove(lua_State* L){
         lrocksdb_cf_t *d = lrocksdb_get_cf(L, 1);
         lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, 2);
         char *err = NULL;
@@ -104,7 +102,7 @@ namespace {
         return retval;
     }
 
-    int close_with_cf(lua_State *L) {
+    int close(lua_State *L) {
         lrocksdb_cf_t *d = lrocksdb_get_cf(L, 1);
         d->open = 0;
         for (unsigned int i = 0; i < d->column_count; ++i) {
@@ -121,7 +119,7 @@ namespace {
     }
 
 
-    int create_iterator_cf(lua_State *L) {
+    int create_iterator(lua_State *L) {
         lrocksdb_cf_t *d = lrocksdb_get_cf(L, 1);
         int argc =1;
         size_t cf_len=0;
@@ -134,7 +132,7 @@ namespace {
         return 1;
     }
 
-    int property_value_cf(lua_State* L){
+    int property_value(lua_State* L){
         lrocksdb_cf_t *d = lrocksdb_get_cf(L, 1);
         int argc =1;
         size_t cf_len=0;

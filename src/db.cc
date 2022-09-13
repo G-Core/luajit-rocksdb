@@ -2,8 +2,6 @@
 #define LROCKSDB_VERSION "lua-rocksdb 0.0.1"
 #define LROCKSDB_COPYRIGHT "Copyright (C) 2016, Zaher Marzuq; 2022 Joe Mariadassou"
 #define LROCKSDB_DESCRIPTION "RocksDB binding for Lua"
-    int open_with_cf(lua_State *L);
-    int cf_reg(lua_State *L);
 namespace {
     int reg(lua_State *L);
     int open_db(lua_State *L);
