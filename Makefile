@@ -30,6 +30,7 @@ MYNAME= rocksdb
 MYLIB= 
 T= $(MYNAME).so
 OBJS= src/db.o \
+	  		src/cf.o \
 			src/helpers.o \
 			src/options.o \
 			src/backup_engine.o \
