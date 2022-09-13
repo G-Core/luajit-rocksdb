@@ -2,6 +2,8 @@
 #define LROCKSDB_VERSION "lua-rocksdb 0.0.1"
 #define LROCKSDB_COPYRIGHT "Copyright (C) 2016, Zaher Marzuq; 2022 Joe Mariadassou"
 #define LROCKSDB_DESCRIPTION "RocksDB binding for Lua"
+
+int lrocksdb_writebatch_cf_create(lua_State *L, rocksdb_column_family_handle_t* h) ;
 namespace {
     int put(lua_State *L);
     int get(lua_State *L);
@@ -9,6 +11,8 @@ namespace {
     int create_iterator(lua_State *L);
     int close(lua_State *L);
     int remove(lua_State *L);
+    int writebatch_cf_create(lua_State *L);
+    int write(lua_State *L) ;
     rocksdb_column_family_handle_t *get_cf_handle(lrocksdb_cf_t* d, const char* name, int len);
     const char* column_family="column_family";
     const struct luaL_Reg  lrocksdb_cf_reg[] = {
@@ -18,11 +22,36 @@ namespace {
         { "close", close},
         { "iterator", create_iterator},
         { "property_value", property_value},
+        { "finalise_batchwrite", write},
+        { "begin_batchwrite", writebatch_cf_create},
         { NULL, NULL }
     };
 
 
 
+    int write(lua_State *L) {
+        int argc=0;
+        lrocksdb_cf_t *d = lrocksdb_get_cf(L, ++argc);
+        lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, ++argc);
+        lrocksdb_writebatch_cf_t *rb = lrocksdb_get_writebatch_cf(L, ++argc);
+        char *err = NULL;
+        rocksdb_write(d->db, wo->writeoptions, rb->writebatch, &err);
+        if(err) {
+            luaL_error(L, err);
+            free(err);
+            return 0;
+        }
+        lua_pushboolean(L, 1);
+        return 1;
+    }
+    
+    int writebatch_cf_create(lua_State *L){
+        int argc=0;
+        lrocksdb_cf_t *d = lrocksdb_get_cf(L, ++argc);
+        size_t cf_name_len;
+        const char* cf_name = luaL_checklstring(L, ++argc, &cf_name_len);
+        return lrocksdb_writebatch_cf_create(L, get_cf_handle(d,cf_name,cf_name_len)) ;
+    }
     int put(lua_State* L) {
         int argc=0;
         lrocksdb_cf_t *d = lrocksdb_get_cf(L, ++argc);

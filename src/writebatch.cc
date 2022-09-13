@@ -2,22 +2,63 @@
 
 int lrocksdb_writebatch_reg(lua_State *L);
 int lrocksdb_writebatch_create(lua_State *L);
-static int lrocksdb_writebatch_put(lua_State *L);
-static int lrocksdb_writebatch_clear(lua_State *L);
-static int lrocksdb_writebatch_count(lua_State *L);
-static int lrocksdb_writebatch_merge(lua_State *L);
-static int lrocksdb_writebatch_destroy(lua_State *L);
+namespace {
 
-static const struct luaL_Reg writebatch_reg[] = {
-  { "put", lrocksdb_writebatch_put },
-  { "clear", lrocksdb_writebatch_clear },
-  { "count", lrocksdb_writebatch_count },
-  { "merge", lrocksdb_writebatch_merge },
-  { "destroy", lrocksdb_writebatch_destroy },
-  { "__gc", lrocksdb_writebatch_destroy },
-  { NULL, NULL }
-};
+    int put(lua_State *L);
+    int clear(lua_State *L);
+    int count(lua_State *L);
+    int merge(lua_State *L);
+    int destroy(lua_State *L);
 
+    const struct luaL_Reg writebatch_reg[] = {
+        { "put", put },
+        { "clear", clear },
+        { "count", count },
+        { "merge", merge },
+        { "destroy", destroy },
+        { "__gc", destroy },
+        { NULL, NULL }
+    };
+    int destroy(lua_State *L) {
+        lrocksdb_writebatch_t *rb = lrocksdb_get_writebatch(L, 1);
+        if(rb->writebatch != NULL) {
+            rocksdb_writebatch_destroy(rb->writebatch);
+            rb->writebatch = NULL;
+        }
+        return 0;
+    }
+
+    int clear(lua_State *L) {
+        lrocksdb_writebatch_t *rb = lrocksdb_get_writebatch(L, 1);
+        rocksdb_writebatch_clear(rb->writebatch);
+        return 0;
+    }
+
+    int count(lua_State *L) {
+        lrocksdb_writebatch_t *rb = lrocksdb_get_writebatch(L, 1);
+        int count = rocksdb_writebatch_count(rb->writebatch);
+        lua_pushnumber(L, count);
+        return 1;
+    }
+
+    int put(lua_State *L) {
+        lrocksdb_writebatch_t *rb = lrocksdb_get_writebatch(L, 1);
+        size_t klen, vlen;
+        const char *key = luaL_checklstring(L, 2, &klen);
+        const char *val = luaL_checklstring(L, 3, &vlen);
+        rocksdb_writebatch_put(rb->writebatch, key, klen, val, vlen);
+        return 0;
+    }
+
+    int merge(lua_State *L) {
+        lrocksdb_writebatch_t *rb = lrocksdb_get_writebatch(L, 1);
+        size_t klen, vlen;
+        const char *key = luaL_checklstring(L, 2, &klen);
+        const char *val = luaL_checklstring(L, 3, &vlen);
+        rocksdb_writebatch_merge(rb->writebatch, key, klen, val, vlen);
+        return 0;
+    }
+}
 int lrocksdb_writebatch_reg(lua_State *L) {
   lrocksdb_createmeta(L, "writebatch", writebatch_reg);
   return 1;
@@ -38,42 +79,3 @@ int lrocksdb_writebatch_create(lua_State *L) {
   return 1;
 }
 
-static int lrocksdb_writebatch_destroy(lua_State *L) {
-  lrocksdb_writebatch_t *rb = lrocksdb_get_writebatch(L, 1);
-  if(rb->writebatch != NULL) {
-    rocksdb_writebatch_destroy(rb->writebatch);
-    rb->writebatch = NULL;
-  }
-  return 0;
-}
-
-static int lrocksdb_writebatch_clear(lua_State *L) {
-  lrocksdb_writebatch_t *rb = lrocksdb_get_writebatch(L, 1);
-  rocksdb_writebatch_clear(rb->writebatch);
-  return 0;
-}
-
-static int lrocksdb_writebatch_count(lua_State *L) {
-  lrocksdb_writebatch_t *rb = lrocksdb_get_writebatch(L, 1);
-  int count = rocksdb_writebatch_count(rb->writebatch);
-  lua_pushnumber(L, count);
-  return 1;
-}
-
-static int lrocksdb_writebatch_put(lua_State *L) {
-  lrocksdb_writebatch_t *rb = lrocksdb_get_writebatch(L, 1);
-  size_t klen, vlen;
-  const char *key = luaL_checklstring(L, 2, &klen);
-  const char *val = luaL_checklstring(L, 3, &vlen);
-  rocksdb_writebatch_put(rb->writebatch, key, klen, val, vlen);
-  return 0;
-}
-
-static int lrocksdb_writebatch_merge(lua_State *L) {
-  lrocksdb_writebatch_t *rb = lrocksdb_get_writebatch(L, 1);
-  size_t klen, vlen;
-  const char *key = luaL_checklstring(L, 2, &klen);
-  const char *val = luaL_checklstring(L, 3, &vlen);
-  rocksdb_writebatch_merge(rb->writebatch, key, klen, val, vlen);
-  return 0;
-}

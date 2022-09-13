@@ -42,6 +42,10 @@ typedef struct {
 } lrocksdb_backup_engine_t;
 
 typedef struct {
+  rocksdb_column_family_handle_t* handle;
+  rocksdb_writebatch_t *writebatch;
+} lrocksdb_writebatch_cf_t;
+typedef struct {
   rocksdb_writebatch_t *writebatch;
 } lrocksdb_writebatch_t;
 

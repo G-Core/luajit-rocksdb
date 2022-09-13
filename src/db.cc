@@ -33,6 +33,7 @@ namespace {
         { "readoptions",  lrocksdb_readoptions_reg },
         { "backup_engine", lrocksdb_backup_engine_reg },
         { "writebatch", lrocksdb_writebatch_reg },
+        { "writebatch_cf", lrocksdb_writebatch_cf_reg },
         { "restoreoptions", lrocksdb_restoreoptions_reg },
         { "iterator", lrocksdb_iter_reg },
         { NULL, NULL }

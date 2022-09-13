@@ -34,6 +34,7 @@ OBJS= src/db.o \
 			src/helpers.o \
 			src/options.o \
 			src/backup_engine.o \
+			src/writebatch_cf.o \
 			src/writebatch.o \
 			src/iter.o
 
