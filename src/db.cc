@@ -1,7 +1,15 @@
 #include "lrocksdb/db.h"
+#include <mutex>
+#include <atomic>
+
 #define LROCKSDB_VERSION "lua-rocksdb 0.0.1"
 #define LROCKSDB_COPYRIGHT "Copyright (C) 2016, Zaher Marzuq; 2022 Joe Mariadassou"
 #define LROCKSDB_DESCRIPTION "RocksDB binding for Lua"
+
+std::mutex global_db_mutex;
+std::atomic<rocksdb_t*> global_db(nullptr);
+lrocksdb_options_t *global_options = NULL;
+
 namespace {
     int reg(lua_State *L);
     int open_db(lua_State *L);
@@ -9,6 +17,7 @@ namespace {
     int get(lua_State *L);
     int close(lua_State *L);
     int open_for_read_only(lua_State *L);
+    int open_for_read_only_once(lua_State *L);
     int remove(lua_State *L);
     int write(lua_State *L);
     int create_iterator(lua_State *L);
@@ -43,6 +52,7 @@ namespace {
         { "open_with_cf", open_with_cf },
         { "open", open_db },
         { "open_for_read_only", open_for_read_only },
+        { "open_for_read_only_once", open_for_read_only_once },
         { "options", lrocksdb_options_create },
         { "writeoptions", lrocksdb_writeoptions_create },
         { "readoptions", lrocksdb_readoptions_create },
@@ -56,7 +66,6 @@ namespace {
         lrocksdb_createmeta(L, "db", lrocksdb_db_reg);
         return 1;
     }
-
 
     int open_db(lua_State *L) {
         lrocksdb_options_t *o = lrocksdb_get_options(L, 1);
@@ -92,7 +101,7 @@ namespace {
             return 0;
         }
 
-        lrocksdb_cf_t *d = (lrocksdb_cf_t *) lua_newuserdata(L, sizeof(lrocksdb_cf_t));
+        lrocksdb_t *d = (lrocksdb_t *) lua_newuserdata(L, sizeof(lrocksdb_t));
         d->db = db;
         d->options = o;
         d->open = 1;
@@ -100,6 +109,40 @@ namespace {
         lrocksdb_setmeta(L, "db");
         return 1;
     }
+
+    int open_for_read_only_once(lua_State *L) {
+      if (global_db.load() == nullptr) {
+        std::lock_guard<std::mutex> lock(global_db_mutex);
+
+        if (global_db.load() == nullptr) {
+          lrocksdb_options_t *o = lrocksdb_get_options(L, 1);
+          const char *name = luaL_checkstring(L, 2);
+          unsigned char error_if_log_file_exist = lua_toboolean(L, 3);
+
+          char *err = nullptr;
+          rocksdb_t *db = rocksdb_open_for_read_only(o->options, name, error_if_log_file_exist, &err);
+
+          if (err) {
+            luaL_error(L, err);
+            free(err);
+            return 1;
+          }
+
+          global_db.store(db);
+        }
+      }
+
+        lrocksdb_t *d = (lrocksdb_t *)lua_newuserdata(L, sizeof(lrocksdb_t));
+        d->db = global_db.load();
+        d->options = global_options;
+        d->open = 1;
+        d->read_only = 1;
+
+        lrocksdb_setmeta(L, "db");
+
+        return 1;
+    }
+
     int put(lua_State *L) {
         lrocksdb_t *d = lrocksdb_get_db(L, 1);
         lrocksdb_writeoptions_t *wo = lrocksdb_get_writeoptions(L, 2);
@@ -173,7 +216,6 @@ namespace {
         lua_pushboolean(L, 1);
         return 1;
     }
-    
 
     int close(lua_State *L) {
         lrocksdb_t *d = lrocksdb_get_db(L, 1);
@@ -181,8 +223,6 @@ namespace {
         rocksdb_close(d->db);
         return 1;
     }
-
-
 
     int create_iterator(lua_State *L) {
         lrocksdb_t *d = lrocksdb_get_db(L, 1);

@@ -5,7 +5,11 @@
 #include <string.h>
 #include <stdint.h>
 extern "C" {
-#include <luajit/lauxlib.h>
+#ifdef USE_LUAJIT
+#include <luajit-2.1/lauxlib.h>
+#else
+#include <lauxlib.h>
+#endif
 }
 #include "lrocksdb/helpers.h"
 #include "lrocksdb/types.h"
