@@ -2,7 +2,11 @@
 #define LROCKSDB_OPTIONS_H
 #include <string.h>
 extern "C" {
-#include <luajit/lauxlib.h>
+#ifdef USE_LUAJIT
+#include <luajit-2.1/lauxlib.h>
+#else
+#include <lauxlib.h>
+#endif
 }
 #include "lrocksdb/types.h"
 #include "lrocksdb/helpers.h"

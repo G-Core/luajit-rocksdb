@@ -71,6 +71,24 @@ assert(ok == false)
 
 read_only_db:close()
 
+-- open for read only once
+local error_if_wal_files_exists = false
+local read_only_db_once = rocksdb.open_for_read_only_once(options, "/tmp/rocksdb.test", error_if_wal_files_exists)
+assert(read_only_db_once)
+print("start.read_only_db_once: get")
+for i = 0, 1000 do
+  key = format("lrocks_db_key:%d", i)
+  expected_value = format("lrocks_db_value:%d", i)
+  value = read_only_db_once:get(readoptions, key)
+  assert(value == expected_value)
+end
+print("done.read_only_db_once: get")
+
+ok, res = pcall(read_only_db_once.put, read_only_db_once, writeoptions, "test", "test")
+assert(ok == false)
+
+read_only_db_once:close()
+
 readoptions:destroy()
 writeoptions:destroy()
 options:destroy()

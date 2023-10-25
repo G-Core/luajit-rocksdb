@@ -13,7 +13,7 @@ local options = rocksdb.options({
 
 assert(options.class == "options")
 
-local db = rocksdb.open_with_cf(options, "/tmp/rocksdb2.test", "default", "columna")
+local db = rocksdb.open_with_cf(options, "/tmp/rocksdb_cf.test", "default", "columna")
 
 local writeoptions = rocksdb.writeoptions()
 assert(writeoptions.class == "writeoptions")
