@@ -6,11 +6,11 @@
 #define LROCKSDB_COPYRIGHT "Copyright (C) 2016, Zaher Marzuq; 2022 Joe Mariadassou"
 #define LROCKSDB_DESCRIPTION "RocksDB binding for Lua"
 
-std::mutex global_db_mutex;
-std::atomic<rocksdb_t*> global_db(nullptr);
-lrocksdb_options_t *global_options = NULL;
-
 namespace {
+    std::mutex global_db_mutex;
+    std::atomic<rocksdb_t*> global_db(nullptr);
+    lrocksdb_options_t *global_options = NULL;
+
     int reg(lua_State *L);
     int open_db(lua_State *L);
     int put(lua_State *L);
@@ -129,6 +129,7 @@ namespace {
           }
 
           global_db.store(db);
+          global_options = o;
         }
       }
 
