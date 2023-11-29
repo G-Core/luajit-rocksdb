@@ -319,12 +319,19 @@ lrocksdb_readoptions_t *lrocksdb_get_readoptions(lua_State *L, int index) {
 void lrocksdb_readoptions_set_from_table(lua_State *L, int index, rocksdb_readoptions_t *opt) {
   lua_pushvalue(L, index);
   lua_pushnil(L);
-  while (lua_next(L, -2))
-  {
+
+  while (lua_next(L, -2)) {
     lua_pushvalue(L, -2);
-   //TODO: const char *key = lua_tostring(L, -1);
+    const char *key = lua_tostring(L, -1);
+
+    if (strcmp(key, "fill_cache") == 0) {
+      unsigned char fill_cache = lua_toboolean(L, -2);
+      rocksdb_readoptions_set_fill_cache(opt, fill_cache);
+    }
+
     lua_pop(L, 2);
   }
+
   lua_pop(L, 1);
 }
 
