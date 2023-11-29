@@ -72,6 +72,7 @@ assert(ok == false)
 read_only_db:close()
 
 -- open for read only once
+local once_readoptions = rocksdb.readoptions({fill_cache = true})
 local error_if_wal_files_exists = false
 local read_only_db_once = rocksdb.open_for_read_only_once(options, "/tmp/rocksdb.test", error_if_wal_files_exists)
 assert(read_only_db_once)
@@ -79,7 +80,7 @@ print("start.read_only_db_once: get")
 for i = 0, 1000 do
   key = format("lrocks_db_key:%d", i)
   expected_value = format("lrocks_db_value:%d", i)
-  value = read_only_db_once:get(readoptions, key)
+  value = read_only_db_once:get(once_readoptions, key)
   assert(value == expected_value)
 end
 print("done.read_only_db_once: get")
