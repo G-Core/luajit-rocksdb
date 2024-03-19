@@ -10,7 +10,7 @@ LIB_PATH = /usr/local/lib
 INC_PATH = /usr/local/include
 BIN_PATH = /usr/local/lib/bin
 
-OPENRESTY_PATH ?= /opt/gcore/openresty11991-gcdn
+OPENRESTY_PATH ?= /opt/gcore/openresty12531-gcdn
 
 LUA_LIB = -L$(LIB_PATH) -L/$(OPENRESTY_PATH)/luajit/lib -lluajit-5.1
 LUA_INC = -I$(INC_PATH) -I$(OPENRESTY_PATH)/luajit/include
